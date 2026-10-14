@@ -6,7 +6,7 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "goldcoast-incidents-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "dfeb4bfd-dd08-409f-90de-7df66f57e52d"
 
 # Optional: set a secret for admin auth hardening later
 # [vars]
