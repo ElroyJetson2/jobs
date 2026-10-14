@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report an Incident – Gold Coast Properties</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="max-w-xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-slate-800">Report an Incident</h1>
+      <p class="text-slate-500 mt-1">Property maintenance – Gold Coast</p>
+    </div>
+
+    <!-- Success state (hidden by default) -->
+    <div id="success" class="hidden bg-white rounded-xl shadow-sm border border-emerald-200 p-6 text-center">
+      <div class="text-emerald-500 text-5xl mb-3">✓</div>
+      <h2 class="text-xl font-semibold text-slate-800">Incident Logged</h2>
+      <p class="text-slate-600 mt-2">Your reference number is:</p>
+      <p id="refDisplay" class="text-2xl font-mono font-bold text-emerald-600 my-3 tracking-wide"></p>
+      <p class="text-sm text-slate-500 mb-4">Save this number to track progress.</p>
+      <a id="trackLink" href="#" class="inline-block bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition">
+        Track Progress
+      </a>
+      <button onclick="location.reload()" class="block mx-auto mt-4 text-sm text-slate-500 hover:text-slate-700">
+        Report another incident
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form id="reportForm" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Development / Property *</label>
+        <select id="development_id" required
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+          <option value="">Select development…</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Unit / Apartment / Lot</label>
+        <input type="text" id="unit" placeholder="e.g. Unit 12B or Lot 45"
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Your Name *</label>
+          <input type="text" id="reporter_name" required placeholder="Full name"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Phone or Email *</label>
+          <input type="text" id="reporter_contact" required placeholder="0400 000 000 or email"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+        <select id="priority"
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+          <option value="low">Low</option>
+          <option value="normal" selected>Normal</option>
+          <option value="high">High</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Describe the issue *</label>
+        <textarea id="description" required rows="4" placeholder="What needs attention? Include location details if helpful."
+          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none resize-none"></textarea>
+      </div>
+
+      <div id="error" class="hidden text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2"></div>
+
+      <button type="submit" id="submitBtn"
+        class="w-full bg-sky-600 text-white font-medium py-3 rounded-lg hover:bg-sky-700 transition disabled:opacity-50">
+        Submit Incident
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-slate-400 mt-6">
+      Already have a reference?
+      <a href="/track.html" class="text-sky-600 hover:underline">Track an existing incident</a>
+    </p>
+  </div>
+
+  <script>
+    // Load developments for the dropdown
+    async function loadDevelopments() {
+      try {
+        const res = await fetch('/api/developments');
+        const data = await res.json();
+        const list = data.developments || [];
+
+        const select = document.getElementById('development_id');
+        list.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = d.name;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Failed to load developments', err);
+        // Fallback hardcoded list if API not ready
+        const fallback = [
+          { id: 1, name: 'Surfers Paradise Residences' },
+          { id: 2, name: 'Broadbeach Waters' },
+          { id: 3, name: 'Main Beach Tower' },
+          { id: 4, name: 'Southport Central' },
+          { id: 5, name: 'Burleigh Heads Apartments' },
+          { id: 6, name: 'Robina Lakes' }
+        ];
+        const select = document.getElementById('development_id');
+        fallback.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = d.name;
+          select.appendChild(opt);
+        });
+      }
+    }
+
+    loadDevelopments();
+
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errEl = document.getElementById('error');
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      const payload = {
+        development_id: parseInt(document.getElementById('development_id').value, 10),
+        unit: document.getElementById('unit').value.trim(),
+        reporter_name: document.getElementById('reporter_name').value.trim(),
+        reporter_contact: document.getElementById('reporter_contact').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        priority: document.getElementById('priority').value
+      };
+
+      try {
+        const res = await fetch('/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Something went wrong');
+        }
+
+        document.getElementById('reportForm').classList.add('hidden');
+        document.getElementById('success').classList.remove('hidden');
+        document.getElementById('refDisplay').textContent = data.reference;
+        document.getElementById('trackLink').href = data.track_url;
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Submit Incident';
+      }
+    });
+
+  </script>
+</body>
+</html>
