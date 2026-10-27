@@ -202,9 +202,24 @@
         data.incidents.forEach(i => {
           const card = document.createElement('div');
           card.className = 'bg-white rounded-xl border border-navy/5 p-4 hover:shadow-sm transition';
-          card.innerHTML = '<div class="flex items-start justify-between gap-3"><div><p class="font-mono font-semibold text-navy"></p><p class="text-sm text-navy/50"></p></div><span class="status-badge px-2.5 py-0.5 rounded-full text-xs font-medium"></span></div><p class="desc text-sm text-navy/80 mt-2 line-clamp-2"></p><div class="flex items-center justify-between mt-3 text-xs text-navy/40"><span class="meta"></span><button class="upd-btn text-gold hover:underline font-medium">Update</button></div>';
-          card.querySelector('.font-mono').textContent = i.reference;
-          card.querySelector('.text-navy\\/50').textContent = i.development_name + (i.unit ? ' · ' + i.unit : '');
+          const proj = i.projected_finish ? '<p class="text-xs text-gold mt-2"><span class="font-medium">Projected finish:</span> ' + formatDate(i.projected_finish) + '</p>' : '';
+          const note = i.latest_note ? '<p class="text-sm text-navy/70 mt-2 bg-cream/80 rounded-lg px-3 py-2 border border-navy/5"><span class="text-[10px] uppercase tracking-wider text-navy/40 block mb-0.5">Latest update</span>' + i.latest_note + '</p>' : '';
+          card.innerHTML =
+            '<div class="flex items-start justify-between gap-3">' +
+              '<div>' +
+                '<p class="ref font-mono font-semibold text-navy"></p>' +
+                '<p class="loc text-sm text-navy/50"></p>' +
+              '</div>' +
+              '<span class="status-badge px-2.5 py-0.5 rounded-full text-xs font-medium"></span>' +
+            '</div>' +
+            '<p class="desc text-sm text-navy/80 mt-2 line-clamp-2"></p>' +
+            note + proj +
+            '<div class="flex items-center justify-between mt-3 text-xs text-navy/40">' +
+              '<span class="meta"></span>' +
+              '<button class="upd-btn text-gold hover:underline font-medium">Update</button>' +
+            '</div>';
+          card.querySelector('.ref').textContent = i.reference;
+          card.querySelector('.loc').textContent = i.development_name + (i.unit ? ' · ' + i.unit : '');
           const badge = card.querySelector('.status-badge');
           badge.textContent = statusLabels[i.status] || i.status;
           badge.className += ' ' + (statusColors[i.status] || '');
