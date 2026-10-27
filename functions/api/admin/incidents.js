@@ -20,7 +20,9 @@ export async function onRequestGet(context) {
         i.id, i.reference, i.unit, i.reporter_name, i.reporter_contact,
         i.description, i.status, i.priority, i.projected_finish, i.assigned_to,
         i.created_at, i.updated_at,
-        d.name AS development_name, d.code AS development_code
+        d.name AS development_name, d.code AS development_code,
+        (SELECT note FROM updates u WHERE u.incident_id = i.id ORDER BY u.created_at DESC LIMIT 1) AS latest_note,
+        (SELECT created_at FROM updates u WHERE u.incident_id = i.id ORDER BY u.created_at DESC LIMIT 1) AS latest_note_at
       FROM incidents i
       JOIN developments d ON d.id = i.development_id
       WHERE 1=1
@@ -42,7 +44,6 @@ export async function onRequestGet(context) {
     const stmt = env.DB.prepare(query);
     const result = await stmt.bind(...params).all();
 
-    // Also return developments for filter dropdown
     const developments = await env.DB.prepare(
       'SELECT id, name, code FROM developments ORDER BY name'
     ).all();
@@ -63,7 +64,6 @@ function checkAuth(request) {
   if (!header.startsWith('Bearer ')) {
     return { ok: false, response: json({ error: 'Unauthorized' }, 401) };
   }
-  // For demo we just check presence of token. Real app would verify.
   return { ok: true };
 }
 
