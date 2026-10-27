@@ -6,6 +6,12 @@ export async function onRequestGet(context) {
   const { env } = context;
 
   try {
+    if (!env.DB) {
+      return new Response(JSON.stringify({
+        error: 'Database not bound. Add D1 binding named DB in Pages Settings → Bindings.'
+      }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+
     const result = await env.DB.prepare(
       'SELECT id, name, code FROM developments ORDER BY name'
     ).all();
@@ -17,7 +23,10 @@ export async function onRequestGet(context) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Failed to load developments' }), {
+    return new Response(JSON.stringify({
+      error: 'Failed to load developments',
+      details: err.message || String(err)
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
