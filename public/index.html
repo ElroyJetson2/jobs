@@ -3,103 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Report an Incident – Gold Coast Properties</title>
+  <title>Report an Incident – Elite Resort Care</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { DEFAULT: '#0B1426', light: '#152238', soft: '#1E2F4A' },
+            gold: { DEFAULT: '#C9A962', light: '#E8D5A3', muted: '#A68B4B' },
+            cream: '#F7F4EF'
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-  <div class="max-w-xl mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold text-slate-800">Report an Incident</h1>
-      <p class="text-slate-500 mt-1">Property maintenance – Gold Coast</p>
-    </div>
-
-    <!-- Success state (hidden by default) -->
-    <div id="success" class="hidden bg-white rounded-xl shadow-sm border border-emerald-200 p-6 text-center">
-      <div class="text-emerald-500 text-5xl mb-3">✓</div>
-      <h2 class="text-xl font-semibold text-slate-800">Incident Logged</h2>
-      <p class="text-slate-600 mt-2">Your reference number is:</p>
-      <p id="refDisplay" class="text-2xl font-mono font-bold text-emerald-600 my-3 tracking-wide"></p>
-      <p class="text-sm text-slate-500 mb-4">Save this number to track progress.</p>
-      <a id="trackLink" href="#" class="inline-block bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition">
-        Track Progress
+<body class="bg-cream min-h-screen text-navy">
+  <header class="bg-navy text-white">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full border border-gold/60 flex items-center justify-center text-gold text-sm font-serif font-bold">ER</div>
+        <div>
+          <div class="font-serif text-lg tracking-wide text-gold leading-tight">Elite Resort Care</div>
+          <div class="text-[10px] uppercase tracking-[0.2em] text-white/50">Incident Portal</div>
+        </div>
       </a>
-      <button onclick="location.reload()" class="block mx-auto mt-4 text-sm text-slate-500 hover:text-slate-700">
-        Report another incident
-      </button>
+      <nav class="flex gap-5 text-sm">
+        <a href="/" class="text-gold border-b border-gold pb-0.5">Report</a>
+        <a href="/track.html" class="text-white/70 hover:text-gold transition">Track</a>
+        <a href="/admin.html" class="text-white/70 hover:text-gold transition">Staff</a>
+      </nav>
     </div>
-
-    <!-- Form -->
-    <form id="reportForm" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
+  </header>
+  <main class="max-w-xl mx-auto px-4 py-10">
+    <div class="text-center mb-8">
+      <h1 class="font-serif text-3xl md:text-4xl text-navy font-semibold">Report an Incident</h1>
+      <p class="text-navy/60 mt-2 text-sm">Luxury property maintenance · Gold Coast</p>
+    </div>
+    <div id="success" class="hidden bg-white rounded-2xl shadow-sm border border-gold/20 p-8 text-center">
+      <div class="w-14 h-14 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl mb-4">✓</div>
+      <h2 class="font-serif text-2xl text-navy">Incident Logged</h2>
+      <p class="text-navy/60 mt-2 text-sm">Your reference number is</p>
+      <p id="refDisplay" class="font-mono text-2xl font-semibold text-gold my-4 tracking-wider"></p>
+      <p class="text-sm text-navy/50 mb-6">Please keep this number to track progress.</p>
+      <a id="trackLink" href="#" class="inline-block bg-navy text-gold px-8 py-3 rounded border border-gold/40 font-medium hover:bg-navy-light transition">Track Progress</a>
+      <button onclick="location.reload()" class="block mx-auto mt-5 text-sm text-navy/50 hover:text-navy">Report another incident</button>
+    </div>
+    <form id="reportForm" class="bg-white rounded-2xl shadow-sm border border-navy/5 p-6 md:p-8 space-y-5">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Development / Property *</label>
-        <select id="development_id" required
-          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+        <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Development / Property *</label>
+        <select id="development_id" required class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition">
           <option value="">Select development…</option>
         </select>
       </div>
-
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Unit / Apartment / Lot</label>
-        <input type="text" id="unit" placeholder="e.g. Unit 12B or Lot 45"
-          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+        <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Unit / Apartment / Lot</label>
+        <input type="text" id="unit" placeholder="e.g. Unit 12B or Lot 45" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition" />
       </div>
-
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Your Name *</label>
-          <input type="text" id="reporter_name" required placeholder="Full name"
-            class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+          <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Your Name *</label>
+          <input type="text" id="reporter_name" required placeholder="Full name" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Phone or Email *</label>
-          <input type="text" id="reporter_contact" required placeholder="0400 000 000 or email"
-            class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+          <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Phone or Email *</label>
+          <input type="text" id="reporter_contact" required placeholder="0400 000 000 or email" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition" />
         </div>
       </div>
-
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-        <select id="priority"
-          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+        <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Priority</label>
+        <select id="priority" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition">
           <option value="low">Low</option>
           <option value="normal" selected>Normal</option>
           <option value="high">High</option>
           <option value="urgent">Urgent</option>
         </select>
       </div>
-
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Describe the issue *</label>
-        <textarea id="description" required rows="4" placeholder="What needs attention? Include location details if helpful."
-          class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none resize-none"></textarea>
+        <label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Describe the issue *</label>
+        <textarea id="description" required rows="4" placeholder="What needs attention? Include location details if helpful." class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 focus:ring-2 focus:ring-gold/40 focus:border-gold outline-none transition resize-none"></textarea>
       </div>
-
-      <div id="error" class="hidden text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2"></div>
-
-      <button type="submit" id="submitBtn"
-        class="w-full bg-sky-600 text-white font-medium py-3 rounded-lg hover:bg-sky-700 transition disabled:opacity-50">
-        Submit Incident
-      </button>
+      <div id="error" class="hidden text-red-700 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2.5"></div>
+      <button type="submit" id="submitBtn" class="w-full bg-navy text-gold font-medium py-3.5 rounded-lg border border-gold/30 hover:bg-navy-light transition disabled:opacity-50 tracking-wide">Submit Incident</button>
     </form>
-
-    <p class="text-center text-sm text-slate-400 mt-6">
-      Already have a reference?
-      <a href="/track.html" class="text-sky-600 hover:underline">Track an existing incident</a>
-    </p>
-  </div>
-
+    <p class="text-center text-sm text-navy/40 mt-8">Already have a reference? <a href="/track.html" class="text-gold hover:underline">Track an existing incident</a></p>
+  </main>
+  <footer class="border-t border-navy/5 mt-12 py-6 text-center text-xs text-navy/40">© Elite Resort Care · Luxury Property Management · Gold Coast</footer>
   <script>
-    // Load developments for the dropdown
     async function loadDevelopments() {
       try {
         const res = await fetch('/api/developments');
         const data = await res.json();
         const list = data.developments || [];
-
         const select = document.getElementById('development_id');
         list.forEach(d => {
           const opt = document.createElement('option');
@@ -107,19 +113,18 @@
           opt.textContent = d.name;
           select.appendChild(opt);
         });
+        if (!list.length) {
+          [{ id: 1, name: 'Oceanfront Residences' }, { id: 2, name: 'Broadbeach Waters Estate' }, { id: 3, name: 'Hinterland Sanctuary' }].forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name;
+            select.appendChild(opt);
+          });
+        }
       } catch (err) {
-        console.error('Failed to load developments', err);
-        // Fallback hardcoded list if API not ready
-        const fallback = [
-          { id: 1, name: 'Surfers Paradise Residences' },
-          { id: 2, name: 'Broadbeach Waters' },
-          { id: 3, name: 'Main Beach Tower' },
-          { id: 4, name: 'Southport Central' },
-          { id: 5, name: 'Burleigh Heads Apartments' },
-          { id: 6, name: 'Robina Lakes' }
-        ];
+        console.error(err);
         const select = document.getElementById('development_id');
-        fallback.forEach(d => {
+        [{ id: 1, name: 'Oceanfront Residences' }, { id: 2, name: 'Broadbeach Waters Estate' }, { id: 3, name: 'Hinterland Sanctuary' }].forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.id;
           opt.textContent = d.name;
@@ -127,9 +132,7 @@
         });
       }
     }
-
     loadDevelopments();
-
     document.getElementById('reportForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -137,7 +140,6 @@
       errEl.classList.add('hidden');
       btn.disabled = true;
       btn.textContent = 'Submitting…';
-
       const payload = {
         development_id: parseInt(document.getElementById('development_id').value, 10),
         unit: document.getElementById('unit').value.trim(),
@@ -146,7 +148,6 @@
         description: document.getElementById('description').value.trim(),
         priority: document.getElementById('priority').value
       };
-
       try {
         const res = await fetch('/api/report', {
           method: 'POST',
@@ -154,11 +155,7 @@
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || 'Something went wrong');
-        }
-
+        if (!res.ok) throw new Error(data.error || 'Something went wrong');
         document.getElementById('reportForm').classList.add('hidden');
         document.getElementById('success').classList.remove('hidden');
         document.getElementById('refDisplay').textContent = data.reference;
@@ -170,7 +167,6 @@
         btn.textContent = 'Submit Incident';
       }
     });
-
   </script>
 </body>
 </html>
