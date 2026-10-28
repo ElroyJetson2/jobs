@@ -10,7 +10,12 @@
 </head>
 <body class="bg-cream min-h-screen text-navy">
   <div id="loginView" class="min-h-screen flex flex-col">
-    <header class="bg-navy text-white py-4"><div class="max-w-sm mx-auto px-4 flex items-center gap-3"><div class="w-9 h-9 rounded-full border border-gold/60 flex items-center justify-center text-gold text-sm font-serif font-bold">ER</div><div class="font-serif text-lg tracking-wide text-gold">Elite Resort Care</div></div></header>
+    <header class="bg-navy text-white py-4"><div class="max-w-sm mx-auto px-4 flex items-center gap-3">
+      <a href="/" class="flex items-center gap-3 hover:opacity-90">
+        <div class="w-9 h-9 rounded-full border border-gold/60 flex items-center justify-center text-gold text-sm font-serif font-bold">ER</div>
+        <div class="font-serif text-lg tracking-wide text-gold">Elite Resort Care</div>
+      </a>
+    </div></header>
     <div class="flex-1 flex items-center justify-center px-4 py-12"><div class="bg-white rounded-2xl shadow-sm border border-navy/5 p-8 w-full max-w-sm">
       <h1 class="font-serif text-2xl text-navy text-center mb-6">Staff Login</h1>
       <form id="loginForm" class="space-y-4">
@@ -19,11 +24,15 @@
         <div id="loginError" class="hidden text-red-700 text-sm"></div>
         <button type="submit" class="w-full bg-navy text-gold py-3 rounded-lg font-medium border border-gold/30">Sign in</button>
       </form>
+      <p class="text-center text-xs text-navy/40 mt-5"><a href="/" class="text-gold hover:underline">← Back to report an incident</a></p>
     </div></div>
   </div>
   <div id="dashView" class="hidden">
     <header class="bg-navy text-white sticky top-0 z-10"><div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full border border-gold/60 flex items-center justify-center text-gold text-xs font-serif font-bold">ER</div><span class="font-serif text-gold tracking-wide">Incident Tracker</span></div>
+      <a href="/" class="flex items-center gap-3 hover:opacity-90">
+        <div class="w-8 h-8 rounded-full border border-gold/60 flex items-center justify-center text-gold text-xs font-serif font-bold">ER</div>
+        <span class="font-serif text-gold tracking-wide">Incident Tracker</span>
+      </a>
       <div class="flex items-center gap-4 text-sm"><span id="userName" class="text-white/60"></span><button onclick="logout()" class="text-white/70 hover:text-gold">Logout</button></div>
     </div></header>
     <main class="max-w-5xl mx-auto px-4 py-6">
