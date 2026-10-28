@@ -38,7 +38,8 @@
         <div><label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Your Name *</label>
           <input type="text" id="reporter_name" required class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 outline-none" /></div>
         <div><label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Phone or Email *</label>
-          <input type="text" id="reporter_contact" required placeholder="0400… or email" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 outline-none" /></div>
+          <input type="text" id="reporter_contact" required placeholder="0400123456 or email" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 outline-none" />
+          <p class="text-xs text-navy/40 mt-1">10-digit mobile/phone or a valid email</p></div>
       </div>
       <div><label class="block text-xs font-medium uppercase tracking-wider text-navy/50 mb-1.5">Describe the issue *</label>
         <textarea id="description" required rows="4" class="w-full border border-navy/15 rounded-lg px-3.5 py-3 bg-cream/50 outline-none resize-none"></textarea></div>
@@ -53,11 +54,59 @@
   </main>
   <footer class="border-t border-navy/5 mt-12 py-6 text-center text-xs text-navy/40">© Elite Resort Care · Gold Coast</footer>
   <script>
+    function isValidEmail(s) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+    }
+    function isValidPhone(s) {
+      const digits = s.replace(/\D/g, '');
+      return digits.length === 10;
+    }
+    function isValidContact(s) {
+      const t = (s || '').trim();
+      if (!t) return false;
+      if (t.includes('@')) return isValidEmail(t);
+      return isValidPhone(t);
+    }
+
     async function loadDevelopments(){try{const res=await fetch('/api/developments');const data=await res.json();const list=data.developments||[];const select=document.getElementById('development_id');list.forEach(d=>{const opt=document.createElement('option');opt.value=d.id;opt.textContent=d.name;select.appendChild(opt);});}catch(e){const select=document.getElementById('development_id');['Koala Cove','Muir Hill','Surfers Riverside'].forEach((name,i)=>{const opt=document.createElement('option');opt.value=i+1;opt.textContent=name;select.appendChild(opt);});}}
     loadDevelopments();
     document.getElementById('photos').addEventListener('change',(e)=>{const box=document.getElementById('photoPreview');box.innerHTML='';[...e.target.files].slice(0,5).forEach(f=>{const url=URL.createObjectURL(f);const img=document.createElement('img');img.src=url;img.className='w-16 h-16 object-cover rounded-lg border border-navy/10';box.appendChild(img);});});
     function copyReference(){const ref=document.getElementById('refDisplay').textContent.trim();const label=document.getElementById('copyRefLabel');const done=()=>{label.textContent='Copied!';setTimeout(()=>label.textContent='Copy',1500);};if(navigator.clipboard)navigator.clipboard.writeText(ref).then(done);else done();}
-    document.getElementById('reportForm').addEventListener('submit',async(e)=>{e.preventDefault();const btn=document.getElementById('submitBtn');const errEl=document.getElementById('error');errEl.classList.add('hidden');btn.disabled=true;btn.textContent='Submitting…';const form=new FormData();form.append('development_id',document.getElementById('development_id').value);form.append('unit',document.getElementById('unit').value.trim());form.append('reporter_name',document.getElementById('reporter_name').value.trim());form.append('reporter_contact',document.getElementById('reporter_contact').value.trim());form.append('description',document.getElementById('description').value.trim());const files=document.getElementById('photos').files;for(let i=0;i<Math.min(files.length,5);i++)form.append('photos',files[i]);try{const res=await fetch('/api/report',{method:'POST',body:form});const data=await res.json();if(!res.ok)throw new Error(data.error||'Something went wrong');document.getElementById('reportForm').classList.add('hidden');document.getElementById('success').classList.remove('hidden');document.getElementById('refDisplay').textContent=data.reference;document.getElementById('trackLink').href=data.track_url;}catch(err){errEl.textContent=err.message;errEl.classList.remove('hidden');btn.disabled=false;btn.textContent='Submit Incident';}});
+    document.getElementById('reportForm').addEventListener('submit',async(e)=>{
+      e.preventDefault();
+      const btn=document.getElementById('submitBtn');
+      const errEl=document.getElementById('error');
+      errEl.classList.add('hidden');
+      const contact=document.getElementById('reporter_contact').value.trim();
+      if(!isValidContact(contact)){
+        errEl.textContent='Please enter a 10-digit phone number (e.g. 0400123456) or a valid email address.';
+        errEl.classList.remove('hidden');
+        document.getElementById('reporter_contact').focus();
+        return;
+      }
+      btn.disabled=true;btn.textContent='Submitting…';
+      const form=new FormData();
+      form.append('development_id',document.getElementById('development_id').value);
+      form.append('unit',document.getElementById('unit').value.trim());
+      form.append('reporter_name',document.getElementById('reporter_name').value.trim());
+      form.append('reporter_contact',contact);
+      form.append('description',document.getElementById('description').value.trim());
+      const files=document.getElementById('photos').files;
+      for(let i=0;i<Math.min(files.length,5);i++)form.append('photos',files[i]);
+      try{
+        const res=await fetch('/api/report',{method:'POST',body:form});
+        const data=await res.json();
+        if(!res.ok)throw new Error(data.error||'Something went wrong');
+        document.getElementById('reportForm').classList.add('hidden');
+        document.getElementById('success').classList.remove('hidden');
+        document.getElementById('refDisplay').textContent=data.reference;
+        document.getElementById('trackLink').href=data.track_url;
+      }catch(err){
+        errEl.textContent=err.message;
+        errEl.classList.remove('hidden');
+        btn.disabled=false;btn.textContent='Submit Incident';
+      }
+    });
   </script>
 </body>
 </html>
