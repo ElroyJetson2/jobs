@@ -1,94 +1,10 @@
-/**
- * POST /api/admin/update
- * Update an incident: status, note, projected_finish, assigned_to
- * Requires Authorization: Bearer <token>
- */
-export async function onRequestPost(context) {
-  const { request, env } = context;
+import { notifyStatusChange } from '../../lib/email.js';
 
-  const auth = checkAuth(request);
-  if (!auth.ok) return auth.response;
-
-  try {
-    const body = await request.json();
-    const {
-      reference,
-      status,
-      note,
-      projected_finish,
-      assigned_to,
-      priority
-    } = body;
-
-    if (!reference) {
-      return json({ error: 'reference is required' }, 400);
-    }
-
-    // Find incident
-    const incident = await env.DB.prepare(
-      'SELECT id, status FROM incidents WHERE reference = ?'
-    ).bind(reference.trim().toUpperCase()).first();
-
-    if (!incident) {
-      return json({ error: 'Incident not found' }, 404);
-    }
-
-    // Build dynamic update
-    const updates = [];
-    const params = [];
-
-    if (status) {
-      updates.push('status = ?');
-      params.push(status);
-    }
-    if (projected_finish !== undefined) {
-      updates.push('projected_finish = ?');
-      params.push(projected_finish || null);
-    }
-    if (assigned_to !== undefined) {
-      updates.push('assigned_to = ?');
-      params.push(assigned_to || null);
-    }
-    if (priority) {
-      updates.push('priority = ?');
-      params.push(priority);
-    }
-
-    updates.push("updated_at = datetime('now')");
-    params.push(incident.id);
-
-    if (updates.length > 1) {
-      await env.DB.prepare(
-        `UPDATE incidents SET ${updates.join(', ')} WHERE id = ?`
-      ).bind(...params).run();
-    }
-
-    // Always add a timeline note if provided, or auto-note on status change
-    const noteText = note || (status ? `Status changed to ${status.replace('_', ' ')}` : null);
-    if (noteText) {
-      await env.DB.prepare(`
-        INSERT INTO updates (incident_id, status, note, created_by)
-        VALUES (?, ?, ?, 'staff')
-      `).bind(incident.id, status || null, noteText).run();
-    }
-
-    // Return updated incident
-    const updated = await env.DB.prepare(`
-      SELECT i.*, d.name AS development_name
-      FROM incidents i
-      JOIN developments d ON d.id = i.development_id
-      WHERE i.id = ?
-    `).bind(incident.id).first();
-
-    return json({
-      success: true,
-      message: 'Incident updated',
-      incident: updated
-    });
-  } catch (err) {
-    console.error('Update error:', err);
-    return json({ error: 'Failed to update incident', details: err.message }, 500);
-  }
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
 
 function checkAuth(request) {
@@ -99,9 +15,48 @@ function checkAuth(request) {
   return { ok: true };
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  const auth = checkAuth(request);
+  if (!auth.ok) return auth.response;
+
+  try {
+    const body = await request.json();
+    const reference = (body.reference || '').trim().toUpperCase();
+    const status = body.status;
+    const note = (body.note || '').trim();
+
+    if (!reference) return json({ error: 'Reference required' }, 400);
+    if (status && !['open', 'closed'].includes(status)) {
+      return json({ error: 'Status must be open or closed' }, 400);
+    }
+
+    const incident = await env.DB.prepare(
+      `SELECT i.*, d.name AS development_name FROM incidents i
+       JOIN developments d ON d.id = i.development_id WHERE i.reference = ?`
+    ).bind(reference).first();
+
+    if (!incident) return json({ error: 'Incident not found' }, 404);
+
+    const newStatus = status || incident.status;
+    const statusChanged = newStatus !== incident.status;
+
+    await env.DB.prepare(
+      `UPDATE incidents SET status = ?, updated_at = datetime('now') WHERE id = ?`
+    ).bind(newStatus, incident.id).run();
+
+    const updateNote = note || (statusChanged ? `Status changed to ${newStatus}` : 'Update added');
+    await env.DB.prepare(
+      `INSERT INTO updates (incident_id, status, note, created_by) VALUES (?, ?, ?, 'staff')`
+    ).bind(incident.id, newStatus, updateNote).run();
+
+    const updated = { ...incident, status: newStatus };
+    if (statusChanged || note) {
+      context.waitUntil(notifyStatusChange(env, updated, updateNote));
+    }
+
+    return json({ success: true, status: newStatus });
+  } catch (err) {
+    return json({ error: 'Update failed', details: err.message }, 500);
+  }
 }
