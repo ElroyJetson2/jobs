@@ -18,6 +18,14 @@ function genRef() {
   return `GC-${y}${m}${day}-${suffix}`;
 }
 
+function isValidContact(s) {
+  const t = (s || '').trim();
+  if (!t) return false;
+  if (t.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
+  const digits = t.replace(/\D/g, '');
+  return digits.length === 10;
+}
+
 function arrayBufferToBase64(buffer) {
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -72,6 +80,9 @@ export async function onRequestPost(context) {
 
     if (!development_id || !reporter_name || !reporter_contact || !description) {
       return json({ error: 'Please fill in all required fields' }, 400);
+    }
+    if (!isValidContact(reporter_contact)) {
+      return json({ error: 'Please enter a 10-digit phone number or a valid email address' }, 400);
     }
 
     const reference = genRef();
