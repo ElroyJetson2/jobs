@@ -1,11 +1,15 @@
 /**
  * Send email via Resend API (set RESEND_API_KEY in Pages env vars).
- * Staff inbox: STAFF_EMAIL or default Eliteresortcare@gmail.com
+ * Staff inbox: STAFF_EMAIL or default eliteresortcare@gmail.com
+ *
+ * With from: onboarding@resend.dev, Resend only allows sending TO the
+ * email address on your Resend account. To email anyone else, verify a
+ * domain at resend.com/domains and set EMAIL_FROM to an address on that domain.
  */
-const STAFF_EMAIL = 'Eliteresortcare@gmail.com';
+const STAFF_EMAIL = 'eliteresortcare@gmail.com';
 
 export function staffEmail(env) {
-  return env.STAFF_EMAIL || STAFF_EMAIL;
+  return (env.STAFF_EMAIL || STAFF_EMAIL).trim().toLowerCase();
 }
 
 export function isEmail(s) {
@@ -19,6 +23,7 @@ export async function sendEmail(env, { to, subject, text, html }) {
     return { ok: false, skipped: true, reason: 'RESEND_API_KEY not set' };
   }
   const from = env.EMAIL_FROM || 'Elite Resort Care <onboarding@resend.dev>';
+  const recipients = (Array.isArray(to) ? to : [to]).map((a) => String(a).trim().toLowerCase());
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -28,7 +33,7 @@ export async function sendEmail(env, { to, subject, text, html }) {
       },
       body: JSON.stringify({
         from,
-        to: Array.isArray(to) ? to : [to],
+        to: recipients,
         subject,
         text,
         html: html || `<pre style="font-family:sans-serif">${escapeHtml(text)}</pre>`
@@ -48,9 +53,9 @@ export async function sendEmail(env, { to, subject, text, html }) {
 
 function escapeHtml(s) {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>');
 }
 
 export async function notifyNewJob(env, incident) {
@@ -87,10 +92,11 @@ export async function notifyStatusChange(env, incident, note) {
     `Track: https://gc-jobs.pages.dev/track.html?ref=${incident.reference}`
   ].filter(Boolean).join('\n');
 
-  await sendEmail(env, { to: staff, subject, text });
+  const staffResult = await sendEmail(env, { to: staff, subject, text });
 
+  let customerResult = null;
   if (isEmail(incident.reporter_contact)) {
-    await sendEmail(env, {
+    customerResult = await sendEmail(env, {
       to: incident.reporter_contact.trim(),
       subject: `Your job ${incident.reference} is ${incident.status}`,
       text: [
@@ -106,6 +112,7 @@ export async function notifyStatusChange(env, incident, note) {
       ].join('\n')
     });
   }
+  return { staff: staffResult, customer: customerResult };
 }
 
 export async function notifyReminder(env, incident) {
