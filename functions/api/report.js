@@ -109,12 +109,19 @@ export async function onRequestPost(context) {
        JOIN developments d ON d.id = i.development_id WHERE i.reference = ?`
     ).bind(reference).first();
 
-    context.waitUntil(notifyNewJob(env, full));
+    // Await email so we know if staff notification worked (do not fail the job if email fails)
+    let email = { ok: false, reason: 'not attempted' };
+    try {
+      email = await notifyNewJob(env, full);
+    } catch (e) {
+      email = { ok: false, error: String(e) };
+    }
 
     return json({
       success: true,
       reference,
-      track_url: `/track.html?ref=${encodeURIComponent(reference)}`
+      track_url: `/track.html?ref=${encodeURIComponent(reference)}`,
+      email
     });
   } catch (err) {
     console.error('report error', err);
