@@ -1,11 +1,20 @@
-/**
- * GET /api/admin/incidents
- * List incidents (optional filters: development_id, status)
- * Requires Authorization: Bearer <token>
- */
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function checkAuth(request) {
+  const header = request.headers.get('Authorization') || '';
+  if (!header.startsWith('Bearer ')) {
+    return { ok: false, response: json({ error: 'Unauthorized' }, 401) };
+  }
+  return { ok: true };
+}
+
 export async function onRequestGet(context) {
   const { request, env } = context;
-
   const auth = checkAuth(request);
   if (!auth.ok) return auth.response;
 
@@ -18,17 +27,14 @@ export async function onRequestGet(context) {
     let query = `
       SELECT
         i.id, i.reference, i.unit, i.reporter_name, i.reporter_contact,
-        i.description, i.status, i.priority, i.projected_finish, i.assigned_to,
-        i.created_at, i.updated_at,
+        i.description, i.status, i.created_at, i.updated_at,
         d.name AS development_name, d.code AS development_code,
-        (SELECT note FROM updates u WHERE u.incident_id = i.id ORDER BY u.created_at DESC LIMIT 1) AS latest_note,
-        (SELECT created_at FROM updates u WHERE u.incident_id = i.id ORDER BY u.created_at DESC LIMIT 1) AS latest_note_at
+        (SELECT note FROM updates u WHERE u.incident_id = i.id ORDER BY u.created_at DESC LIMIT 1) AS latest_note
       FROM incidents i
       JOIN developments d ON d.id = i.development_id
       WHERE 1=1
     `;
     const params = [];
-
     if (developmentId) {
       query += ' AND i.development_id = ?';
       params.push(developmentId);
@@ -37,13 +43,10 @@ export async function onRequestGet(context) {
       query += ' AND i.status = ?';
       params.push(status);
     }
-
     query += ' ORDER BY i.created_at DESC LIMIT ?';
     params.push(limit);
 
-    const stmt = env.DB.prepare(query);
-    const result = await stmt.bind(...params).all();
-
+    const result = await env.DB.prepare(query).bind(...params).all();
     const developments = await env.DB.prepare(
       'SELECT id, name, code FROM developments ORDER BY name'
     ).all();
@@ -54,22 +57,6 @@ export async function onRequestGet(context) {
       developments: developments.results || []
     });
   } catch (err) {
-    console.error('List incidents error:', err);
     return json({ error: 'Failed to list incidents', details: err.message }, 500);
   }
-}
-
-function checkAuth(request) {
-  const header = request.headers.get('Authorization') || '';
-  if (!header.startsWith('Bearer ')) {
-    return { ok: false, response: json({ error: 'Unauthorized' }, 401) };
-  }
-  return { ok: true };
-}
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
 }
